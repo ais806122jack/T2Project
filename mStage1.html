@@ -1,0 +1,730 @@
+<html>
+<head>
+<title> MOUSE STAGE 1 </title>
+
+<!-- copy and paste the next 2 lines to setup the sound files, you must modify the loadsoundchrome.js file with your sounds -->
+<script type="text/javascript" src="script/soundmanager2.js"></script>
+<script type="text/javascript" src="script/loadsoundchrome.js"></script>
+<!-- Stop copying here -->
+
+<center>
+    <script type="text/javascript" src="script/processing-1.4.1.js"></script>
+    <script type="text/processing" data-processing-target="mycanvas">
+
+/* @pjs globalKeyEvents = "true"; */
+
+
+//GAME
+int fRate;							//framerate (just incase)
+int gameOver;						//game over trigger
+int gameWon;						//game won trigger
+
+int next;							//next stage trigger
+int start;							//start bgm
+
+//PLAYER
+PImage pac;
+float radius = 20.0;
+int x, y;							//player character coordinates
+int mx, my; 						//MOUSE COORDINATES for player character
+int delay = 15;						//delay mouseClick & character move
+
+//PROJECTILES (what players shoot)
+int delayP = 25;					//gun projectile delay
+int xp, yp;							//x,y of projectile
+int nx, ny;							//save mouse for projectile
+int fire1;							//fire trigger
+int slope;							//slope between mouse and projectile/character
+int srateX;							//rate of run
+int srateY;							//rate of rise
+
+//OBJECT STAGE 1 HAS ONLY 1 ENEMY (EACH WILL SPLIT 3TIMES INTO 2 SMALLER ONES [1 > 2 > 4])
+PImage red;
+int b1;								//big object spawn trigger
+int db1;							//distance object-projectile
+int db1p;							//distance object-player
+int xb1, yb1;						//x,y of big object
+int dxb1, dyb1;						//direction of object
+
+PImage pink;
+int m1, m2;							//medium object spawn trigger
+int dm1, dm2;						//distance object-projectile
+int dm1p, dm2p;						//distance object-player
+int xm1, ym1, xm2, ym2;				//x,y of medium object
+int dxm11, dxm12, dym11, dym12;		//direction of medium object
+
+PImage blu;
+int s1, s2, s3, s4;					//small objects spawn trigger
+int ds1, ds2, ds3, ds4;				//distance object-projectile
+int ds1p, ds2p, ds3p, ds4p;			//distance object-player
+int xs1, ys1, xs2, ys2, xs3, ys3, xs4, ys4;
+int dxs11, dxs12, dxs13, dxs14, dys11, dys12, dys13, dys14;
+
+void setup()
+{  
+    size( 700, 500 );  
+    background(0,0,0);
+    frameRate( 60 );
+	
+	//GAME
+	fRate = 60;
+	gameOver = 0;
+	gameWon = 0;
+	
+	start = 1;
+	next = 0;
+	
+	//PLAYER
+	pac = loadImage("image/pacman.png");
+	x = 350;
+	y = 250;
+	
+	mx = x;
+	my = y;
+	
+	//PROJECT TILES
+	xp = x;
+	yp = y;
+	fire1 = 0;
+	nx = xp;
+	ny = yp;
+	slope = 0;
+	srateX = 0;
+	srateY = 0;
+	
+	
+	//OBJECTS
+	xb1 = 100;
+	yb1 = 100;
+	xm1 = -1500;
+	ym1 = -1500;
+	xm2 = -1500;
+	ym2 = -1500;
+	xs1 = -1500;
+	ys1 = -1500;
+	xs2 = -1500;
+	ys2 = -1500;
+	xs3 = -1500;
+	ys3 = -1500;
+	xs4 = -1500;
+	ys4 = -1500;
+	
+	b1 = 1;
+	m1 = 0;
+	m2 = 0;
+	s1 = 0;
+	s2 = 0;
+	s3 = 0;
+	s4 = 0;
+	dxb1 = int(random(0,1.3));
+	dyb1 = int(random(0,1.3));
+	dxm11 = int(random(0,2));
+	dxm12 = int(random(0,2));
+	dym11 = int(random(0,1.3));
+	dym12 = int(random(0,1.3));
+	dxs11 = int(random(0,2));
+	dxs12 = int(random(0,2));
+	dxs13 = int(random(0,1.3));
+	dxs14 = int(random(0,1.3));
+	dys11 = int(random(0,2));
+	dys12 = int(random(0,2));
+	dys13 = int(random(0,1.3));
+	dys14 = int(random(0,1.3));
+	
+	red = loadImage("image/red.png");
+	pink = loadImage("image/pink.png");
+	blu = loadImage("image/blue.png");
+}  
+
+
+void draw()
+{
+    background(0,0,0);
+    frameRate ( fRate );
+    
+	if (start == 1)
+   	{
+   		soundManager.play('s0');
+   		
+   		start = 0;
+   	}
+
+//GAME------------------------------------------------------------------------------------
+	if (gameOver == 1)
+	{
+		link ("over.html");
+	}
+
+//PLAYER----------------------------------------------------------------------------------
+	//adius = radius + sin(frameCount/4);
+	
+	x+=(mx-x)/delay;
+	y+=(my-y)/delay;
+	
+	fill (255,255,255);
+	image(pac,x-15,y-15,30,30);
+	
+//PROJECTILES-----------------------------------------------------------------------------
+
+	
+	fill (255,255,255);
+	ellipse (xp,yp,10,10);
+	
+	if (xp <= 0 || xp >= 700)
+	{
+		xp = x;
+		fire1 = 0;
+	}
+	
+	if (yp <= 0 || yp >= 500)
+	{
+		yp = y;
+		fire1 = 0;
+	}
+	
+	if (fire1 == 0)
+	{
+		xp = x;
+		yp = y;
+	}
+	
+	if (fire1 == 1)
+	{	
+		xp+=srateX/delayP;
+		yp+=srateY/delayP;
+		
+		
+	}
+	
+	
+//OBJECTS---------------------------------------------------------------------------------
+									//FIRST (BIG)
+	if (b1 == 1)
+	{
+		fill (255,0,0);
+		image (red,xb1-50,yb1-50,100,100);
+	
+		if (dxb1 == 0) //DIRECTIONS
+		{
+			xb1 = xb1 + 3;	
+		}
+	
+		if (dxb1 == 1)
+		{
+			xb1 = xb1 - 3;
+		}
+	
+		if (dyb1 == 0)
+		{
+			yb1 = yb1 + 3;
+		}
+	
+		if (dyb1 == 1)
+		{
+			yb1 = yb1 - 3;
+		}
+	
+		if (xb1 >= 670) //BOUNDARIES
+		{
+			dxb1 = 1;
+		}
+	
+		if (xb1 <= 30)
+		{
+			dxb1 = 0;
+		}
+	
+		if (yb1 >= 470)
+		{
+			dyb1 = 1;
+		}
+	
+		if (yb1 <= 30)
+		{
+			dyb1 = 0;
+		}
+	}
+	
+							//SECOND 2x MEDUIM (FASTER)
+	if (m1 == 0 && b1 == 1 || m2 == 0 && b1 == 1)
+	{
+		xm1 = xb1;
+		xm2 = xb1;
+		ym1 = yb1;
+		ym2 = yb1;
+	}
+	
+	if (m1 == 1)
+	{
+		xb1 = 1500;
+		yb1 = 1500;
+		
+		fill (255,0,0);
+		image (pink,xm1-25,ym1-25,50,50);
+	
+		if (dxm11 == 0) //DIRECTIONS
+		{
+			xm1 = xm1 + 5;	
+		}
+	
+		if (dxm11 == 1)
+		{
+			xm1 = xm1 - 6;
+		}
+	
+		if (dym11 == 0)
+		{
+			ym1 = ym1 + 6;
+		}
+	
+		if (dym11 == 1)
+		{
+			ym1 = ym1 - 5;
+		}
+	
+		if (xm1 >= 670) //BOUNDARIES
+		{
+			dxm11 = 1;
+		}
+	
+		if (xm1 <= 30)
+		{
+			dxm11 = 0;
+		}
+	
+		if (ym1 >= 470)
+		{
+			dym11 = 1;
+		}
+	
+		if (ym1 <= 30)
+		{
+			dym11 = 0;
+		}
+	}
+	
+	if (m2 == 1)
+	{
+		fill (255,0,0);
+		image (pink,xm2-25,ym2-25,50,50);
+	
+		if (dxm12 == 0) //DIRECTIONS
+		{
+			xm2 = xm2 + 6;	
+		}
+	
+		if (dxm12 == 1)
+		{
+			xm2 = xm2 - 5;
+		}
+	
+		if (dym12 == 0)
+		{
+			ym2 = ym2 + 5;
+		}
+	
+		if (dym12 == 1)
+		{
+			ym2 = ym2 - 6;
+		}
+	
+		if (xm2 >= 670) //BOUNDARIES
+		{
+			dxm12 = 1;
+		}
+	
+		if (xm2 <= 30)
+		{
+			dxm12 = 0;
+		}
+	
+		if (ym2 >= 470)
+		{
+			dym12 = 1;
+		}
+	
+		if (ym2 <= 30)
+		{
+			dym12 = 0;
+		}
+	
+	}
+	
+						//THIRD 4x (2 each) SMALL OBJECTS FASTER
+	if (s1 == 0 && m1 == 1 || s2 == 0 && m1 == 1)
+	{
+		xs1 = xm1;
+		xs2 = xm1;
+		ys1 = ym1;
+		ys2 = ym1;
+	}
+	
+	if (s1 == 1)
+	{
+		xm1 = 1500;
+		ym1 = 1500;
+		
+		fill (255,0,0);
+		image (blu,xs1-15,ys1-15,30,30);
+	
+		if (dxs11 == 0) //DIRECTIONS
+		{
+			xs1 = xs1 + 5;	
+		}
+	
+		if (dxs11 == 1)
+		{
+			xs1 = xs1 - 6;
+		}
+	
+		if (dys11 == 0)
+		{
+			ys1 = ys1 + 5;
+		}
+	
+		if (dys11 == 1)
+		{
+			ys1 = ys1 - 6;
+		}
+	
+		if (xs1 >= 670) //BOUNDARIES
+		{
+			dxs11 = 1;
+		}
+	
+		if (xs1 <= 30)
+		{
+			dxs11 = 0;
+		}
+	
+		if (ys1 >= 470)
+		{
+			dys11 = 1;
+		}
+	
+		if (ys1 <= 30)
+		{
+			dys11 = 0;
+		}
+	}
+	
+	if (s2 == 1)
+	{
+		fill (255,0,0);
+		image (blu,xs2-15,ys2-15,30,30);
+	
+		if (dxs12 == 0) //DIRECTIONS
+		{
+			xs2 = xs2 + 5;	
+		}
+	
+		if (dxs12 == 1)
+		{
+			xs2 = xs2 - 6;
+		}
+	
+		if (dys12 == 0)
+		{
+			ys2 = ys2 + 6;
+		}
+	
+		if (dys12 == 1)
+		{
+			ys2 = ys2 - 5;
+		}
+	
+		if (xs2 >= 670) //BOUNDARIES
+		{
+			dxs12 = 1;
+		}
+	
+		if (xs2 <= 30)
+		{
+			dxs12 = 0;
+		}
+	
+		if (ys2 >= 470)
+		{
+			dys12 = 1;
+		}
+	
+		if (ys2 <= 30)
+		{
+			dys12 = 0;
+		}
+	}
+
+	if (s3 == 0 && m2 == 1 || s4 == 0 && m2 == 1)
+	{
+		xs3 = xm2;
+		xs4 = xm2;
+		ys3 = ym2;
+		ys4 = ym2;
+	}
+	
+	if (s3 == 1)
+	{
+		xm2 = 1500;
+		ym2 = 1500;
+		
+		fill (255,0,0);
+		image (blu,xs3-15,ys3-15,30,30);
+	
+		if (dxs13 == 0) //DIRECTIONS
+		{
+			xs3 = xs3 + 6;	
+		}
+	
+		if (dxs13 == 1)
+		{
+			xs3 = xs3 - 5;
+		}
+	
+		if (dys13 == 0)
+		{
+			ys3 = ys3 + 6;
+		}
+	
+		if (dys13 == 1)
+		{
+			ys3 = ys3 - 5;
+		}
+	
+		if (xs3 >= 670) //BOUNDARIES
+		{
+			dxs13 = 1;
+		}
+	
+		if (xs3 <= 30)
+		{
+			dxs13 = 0;
+		}
+	
+		if (ys3 >= 470)
+		{
+			dys13 = 1;
+		}
+	
+		if (ys3 <= 30)
+		{
+			dys13 = 0;
+		}
+	}
+	
+	if (s4 == 1)
+	{
+		fill (255,0,0);
+		image (blu,xs4-15,ys4-15,30,30);
+	
+		if (dxs14 == 0) //DIRECTIONS
+		{
+			xs4 = xs4 + 6;	
+		}
+	
+		if (dxs14 == 1)
+		{
+			xs4 = xs4 - 7;
+		}
+	
+		if (dys14 == 0)
+		{
+			ys4 = ys4 + 7;
+		}
+	
+		if (dys14 == 1)
+		{
+			ys4 = ys4 - 6;
+		}
+	
+		if (xs4 >= 670) //BOUNDARIES
+		{
+			dxs14 = 1;
+		}
+	
+		if (xs4 <= 30)
+		{
+			dxs14 = 0;
+		}
+	
+		if (ys4 >= 470)
+		{
+			dys14 = 1;
+		}
+	
+		if (ys4 <= 30)
+		{
+			dys14 = 0;
+		}
+	}
+	
+
+
+//COLLISION (KILLED ENEMY- HIT ENEMY)-----------------------------------------------------
+	//distance formulas
+	db1 = (int)sqrt(sq(xp-xb1)+sq(yp-yb1));
+	dm1 = (int)sqrt(sq(xp-xm1)+sq(yp-ym1));
+	dm2 = (int)sqrt(sq(xp-xm2)+sq(yp-ym2));
+	ds1 = (int)sqrt(sq(xp-xs1)+sq(yp-ys1));
+	ds2 = (int)sqrt(sq(xp-xs2)+sq(yp-ys2));
+	ds3 = (int)sqrt(sq(xp-xs3)+sq(yp-ys3));
+	ds4 = (int)sqrt(sq(xp-xs4)+sq(yp-ys4));
+	
+	
+	
+	//collisions
+	if (db1 <= 35 && fire1 == 1 && b1 == 1) //big easy
+	{
+		
+		soundManager.play('s2');
+		
+		b1 = 0;
+		m1 = 1;			//spawn the next two objects (medium)
+		m2 = 1;
+		
+		fire1 = 0;		//prevent multikills with one shot
+		
+		
+	}
+	
+	if (dm1 <= 25 && fire1 == 1 && m1 == 1)  //medium normal
+	{
+		soundManager.play('s2');
+		
+		m1 = 0;
+		s1 = 1;			//spawn the next two objects (small)
+		s2 = 1;
+		fire1 = 0;
+		
+	}
+	
+	if (dm2 <= 25 && fire1 == 1 && m2 == 1)
+	{
+		soundManager.play('s2');
+		
+		m2 = 0;
+		s3 = 1;			//spawn the next two objects (small)
+		s4 = 1;
+		
+		fire1 = 0;
+		
+	
+	}
+	
+	if (ds1 <= 15 && fire1 == 1 && s1 == 1)  //small hard
+	{
+		soundManager.play('s2');
+		
+		s1 = 0;
+		xs1 = -1500;
+		fire1 = 0;
+	
+	}
+	
+	if (ds2 <= 15 && fire1 == 1 && s2 == 1)
+	{
+		soundManager.play('s2');
+		
+		s2 = 0;
+		xs2 = -1500;
+		fire1 = 0;
+		
+	}
+	
+	if (ds3 <= 15 && fire1 == 1 && s3 == 1)
+	{
+		soundManager.play('s2');
+		
+		s3 = 0;	
+		xs3 = -1500;
+		fire1 = 0;
+		
+	}
+	
+	if (ds4 <= 15 && fire1 == 1 && s4 == 1)
+	{
+		soundManager.play('s2');
+		
+		s4 = 0;
+		xs4 = -1500;
+		fire1 = 0;
+		
+	}
+	
+	//WIN THE STAGE (ALL OBJECTS DESTROYED)
+	
+	if (b1 == 0 && m1 == 0 && m2 == 0 && s1 == 0 && s2 == 0 && s3 == 0 && s4 == 0)
+	{
+		gameWon = 1;
+	}
+	
+//COLLISION (GAME OVER) PLAYER HITS OBJECTS-----------------------------------------------
+	//distance formula
+	db1p = (int)sqrt(sq(x-xb1)+sq(y-yb1));
+	dm1p = (int)sqrt(sq(x-xm1)+sq(y-ym1));
+	dm2p = (int)sqrt(sq(x-xm2)+sq(y-ym2));
+	ds1p = (int)sqrt(sq(x-xs1)+sq(y-ys1));
+	ds2p = (int)sqrt(sq(x-xs2)+sq(y-ys2));
+	ds3p = (int)sqrt(sq(x-xs3)+sq(y-ys3));
+	ds4p = (int)sqrt(sq(x-xs4)+sq(y-ys4));
+	
+	//collision
+	
+	if (db1p <= 50 || dm1p <= 30 || dm2p <= 30 || ds1p <= 15 || ds2p <= 15 || ds3p <= 15 || ds4p <= 15)
+	{
+		if (b1 == 1 || m1 == 1 || m2 == 1 || s1 == 1 || s2 == 1 || s3 == 1 || s4 == 1)
+		{
+			
+			gameOver = 1;
+			
+		}
+	}
+//GAME WON >> NEXT STAGE------------------------------------------------------------------
+	if (gameWon == 1)
+	{
+		soundManager.play('s1');
+		
+		next = 1;
+	}
+
+	if (next == 1)
+	{
+		link ("mStage2.html");
+	}
+
+}
+
+void mousePressed ()
+{
+	if (mouseButton == RIGHT)
+	{
+		mx = mouseX;
+		my = mouseY;
+	}
+	
+	if (mouseButton == LEFT && fire1 == 0)
+	{
+		soundManager.play('s5');
+		
+		fire1 = 1;
+		
+		nx = mouseX;
+		ny = mouseY;
+		
+		slope = (ny-yp)/(nx-xp);
+		srateX = (nx-xp);
+		srateY = (ny-yp);
+		
+		
+	}
+}
+
+
+    </script>
+    <canvas id="mycanvas"></canvas>
+</center>
+
+</head>
+
+<body>
+</body>
+</html>
